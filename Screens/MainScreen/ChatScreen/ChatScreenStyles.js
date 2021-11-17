@@ -1,16 +1,16 @@
-import { StyleSheet } from "react-native";
+import {StyleSheet} from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
-    justifyContent: "flex-end",
-    backgroundColor: "#FFFFFF",
-    width: "100%",
+    justifyContent: 'flex-end',
+    backgroundColor: '#FFFFFF',
+    width: '100%',
     flex: 7,
   },
 
   textInput: {
     flex: 5,
-    borderColor: "black",
+    borderColor: 'black',
     borderWidth: 1.5,
     margin: 4,
     padding: 8,
@@ -20,9 +20,9 @@ export const styles = StyleSheet.create({
   chatContainer: {
     // borderColor: "red",
     // borderWidth: 4,
-    flexDirection: "row",
+    flexDirection: 'row',
     flex: 1,
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
     // overflow: "hidden",
   },
 
@@ -32,31 +32,35 @@ export const styles = StyleSheet.create({
 
   senderTextBubble: {
     borderRadius: 8,
-    backgroundColor: "#A4CDDA",
-    alignSelf: "flex-end",
+    backgroundColor: '#A4CDDA',
+    alignSelf: 'flex-end',
     margin: 8,
     padding: 6,
     marginLeft: 68,
   },
   receiverChatBubble: {
     borderRadius: 8,
-    backgroundColor: "#F2AC44",
-    alignSelf: "baseline",
+    backgroundColor: '#F2AC44',
+    alignSelf: 'baseline',
     margin: 8,
     padding: 6,
     marginRight: 68,
   },
 
   sendMessageContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
+  },
+
+  voiceChatRTC: {
+    alignSelf: 'center',
   },
 
   sendButton: {
     flex: 1,
     padding: 6,
     margin: 8,
-    alignSelf: "stretch",
-    backgroundColor: "skyblue",
-    justifyContent: "center",
+    alignSelf: 'stretch',
+    backgroundColor: 'skyblue',
+    justifyContent: 'center',
   },
 });

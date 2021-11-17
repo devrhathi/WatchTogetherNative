@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {socket} from '../../../SocketContext';
 import {styles} from './ChatScreenStyles';
+import VoiceChatRTC from '../VoiceChatRTC/VoiceChatRTC';
 
 export default function ChatScreen({currRoomID, currSocketID}) {
   const [messages, setMessages] = useState([]);
@@ -74,6 +75,9 @@ export default function ChatScreen({currRoomID, currSocketID}) {
         />
       </View>
       <View style={styles.sendMessageContainer}>
+        <View style={styles.voiceChatRTC}>
+          <VoiceChatRTC />
+        </View>
         <TextInput
           style={styles.textInput}
           placeholder="Enter a message..."
