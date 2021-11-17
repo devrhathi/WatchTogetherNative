@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useContext} from 'react';
 import {
   Text,
   TextInput,
@@ -7,14 +7,16 @@ import {
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
+import {CurrSocketIDContext} from '../MainScreen';
 import {socket} from '../../../SocketContext';
 import {styles} from './ChatScreenStyles';
 import VoiceChatRTC from '../VoiceChatRTC/VoiceChatRTC';
 
-export default function ChatScreen({currRoomID, currSocketID}) {
+export default function ChatScreen({currRoomID}) {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState('');
   const flatListRef = useRef();
+  const currSocketID = useContext(CurrSocketIDContext);
 
   useEffect(() => {
     socket.on('messageReceived', msgObj => {
@@ -76,7 +78,7 @@ export default function ChatScreen({currRoomID, currSocketID}) {
       </View>
       <View style={styles.sendMessageContainer}>
         <View style={styles.voiceChatRTC}>
-          <VoiceChatRTC />
+          <VoiceChatRTC roomID={currRoomID} />
         </View>
         <TextInput
           style={styles.textInput}

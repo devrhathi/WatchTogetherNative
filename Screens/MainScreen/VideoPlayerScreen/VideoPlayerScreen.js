@@ -14,7 +14,7 @@ import {styles} from './VideoPlayerStyles';
 import PlayIcon from 'react-native-vector-icons/Entypo';
 import PauseIcon from 'react-native-vector-icons/FontAwesome';
 
-export default function VideoPlayerScreen({currRoomID, currSocketID}) {
+export default function VideoPlayerScreen({currRoomID}) {
   const youtubePlayerRef = useRef();
   const [isPlaying, setIsPlaying] = useState(false);
   const sliderRef = useRef();

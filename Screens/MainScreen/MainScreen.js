@@ -4,6 +4,8 @@ import VideoPlayerScreen from './VideoPlayerScreen/VideoPlayerScreen';
 import ChatScreen from './ChatScreen/ChatScreen';
 import {socket} from '../../SocketContext';
 
+export const CurrSocketIDContext = React.createContext();
+
 export default function MainScreen({route, navigation}) {
   // const { roomIDText } = route.params;
   const roomIDText = 'DFWvyP6BOis';
@@ -25,8 +27,10 @@ export default function MainScreen({route, navigation}) {
 
   return (
     <View style={styles.container}>
-      <VideoPlayerScreen currRoomID={roomIDText} currSocketID={currSocketID} />
-      <ChatScreen currRoomID={roomIDText} currSocketID={currSocketID} />
+      <CurrSocketIDContext.Provider value={currSocketID}>
+        <VideoPlayerScreen currRoomID={roomIDText} />
+        <ChatScreen currRoomID={roomIDText} />
+      </CurrSocketIDContext.Provider>
     </View>
   );
 }
