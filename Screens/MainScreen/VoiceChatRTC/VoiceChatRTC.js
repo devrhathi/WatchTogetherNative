@@ -17,7 +17,42 @@ import {
 export default function VoiceChatRTC({roomID}) {
   LogBox.ignoreLogs(['new NativeEventEmitter']);
 
+  // const configuration = {
+  //   iceServers: [
+  //     {
+  //       urls: [
+  //         'stun.l.google.com:19302',
+  //         'stun1.l.google.com:19302',
+  //         'stun2.l.google.com:19302',
+  //         'stun3.l.google.com:19302',
+  //         'stun4.l.google.com:19302',
+  //       ],
+  //     },
+  //   ],
+  //   iceCandidatePoolSize: 10,
+  // };
+
+  // 'stun:stun1.l.google.com:19302',
+  // 'stun:stun2.l.google.com:19302',
+
+  const configuration = {
+    iceServers: [
+      {
+        urls: [
+          'stun:stun.l.google.com:19302',
+          'stun:stun1.l.google.com:19302',
+          'stun:stun2.l.google.com:19302',
+          'stun:stun3.l.google.com:19302',
+          'stun:stun4.l.google.com:19302',
+        ],
+      },
+    ],
+    iceCandidatePoolSize: 10,
+  };
+
   const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+
   const [isConnected, setIsConnected] = useState(false);
   const currentSocketID = useContext(CurrSocketIDContext);
 
@@ -25,15 +60,14 @@ export default function VoiceChatRTC({roomID}) {
     socket.on('offerReceive', async offer => {
       setupMic();
       //offer received, create new connection object, set remote description, create ans and set it to local description
-      const configuration = {
-        iceServers: [{urls: 'stun:stun.l.google.com:19302'}],
-      };
       const peerConnection = new RTCPeerConnection(configuration);
 
       peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       socket.emit('answerSend', {roomID, answer});
+
+      setupListeners(peerConnection);
     });
 
     socket.on('voiceConnectedReceived', () => {
@@ -41,26 +75,24 @@ export default function VoiceChatRTC({roomID}) {
     });
   }, []);
 
-  const setupMic = () => {
+  const setupMic = async () => {
     //grab user's mic permission
     if (grabMicrophone()) {
       //set media stream
-      mediaDevices
-        .getUserMedia({audio: true})
-        .then(stream => setLocalStream(stream));
+      const micStream = await mediaDevices.getUserMedia({audio: true});
+      setLocalStream(micStream);
+      return micStream;
+      // console.log(micStream);
     } else {
       console.log('error grabbing microphone');
     }
   };
 
   const makeCall = async () => {
-    setupMic();
-
     //begin the peer connection via signaling
-    const configuration = {
-      iceServers: [{urls: 'stun:stun.l.google.com:19302'}],
-    };
     const peerConnection = new RTCPeerConnection(configuration);
+    const micLocalStream = await setupMic();
+    peerConnection.addStream(micLocalStream);
 
     //create an offer
     const offer = await peerConnection.createOffer();
@@ -75,6 +107,40 @@ export default function VoiceChatRTC({roomID}) {
       const remoteDesc = new RTCSessionDescription(answer);
       await peerConnection.setRemoteDescription(remoteDesc);
       socket.emit('voiceConnected', roomID);
+    });
+
+    setupListeners(peerConnection);
+
+    peerConnection.onconnectionstatechange = function (e) {
+      console.log(e.target.connectionState);
+    };
+
+    // peerConnection.oniceconnectionstatechange = function (e) {
+    //   console.log(e.target.iceConnectionState);
+    // };
+
+    // peerConnection.onicegatheringstatechange = function (e) {
+    //   console.log(e.target.iceGatheringState);
+    // };
+
+    // peerConnection.onsignalingstatechange = function (e) {
+    //   console.log(e.target.signalingState);
+    // };
+  };
+
+  const setupListeners = async peerConnection => {
+    const tempStream = peerConnection.getLocalStreams();
+    setRemoteStream(tempStream[0]);
+
+    //add listener for receiving and transmitting ice candidates
+    peerConnection.onicecandidate = function (event) {
+      if (event.candidate) {
+        socket.emit('newIceCandidate', event.candidate);
+      }
+    };
+
+    socket.on('newIceCandidateReceive', async candidate => {
+      await peerConnection.addIceCandidate(candidate);
     });
   };
 
@@ -108,7 +174,7 @@ export default function VoiceChatRTC({roomID}) {
         size={38}
         color={isConnected ? 'green' : 'black'}
       />
-      {localStream && <RTCView streamURL={localStream.toURL()} />}
+      {remoteStream && <RTCView streamURL={remoteStream.toURL()} />}
     </TouchableOpacity>
   );
 }

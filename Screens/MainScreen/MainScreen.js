@@ -28,7 +28,7 @@ export default function MainScreen({route, navigation}) {
   return (
     <View style={styles.container}>
       <CurrSocketIDContext.Provider value={currSocketID}>
-        <VideoPlayerScreen currRoomID={roomIDText} />
+        {/* <VideoPlayerScreen currRoomID={roomIDText} /> */}
         <ChatScreen currRoomID={roomIDText} />
       </CurrSocketIDContext.Provider>
     </View>
