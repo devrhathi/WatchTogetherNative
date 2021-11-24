@@ -3,37 +3,17 @@ import {TouchableOpacity, PermissionsAndroid, LogBox} from 'react-native';
 import VoiceChatIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {socket} from '../../../SocketContext';
 import {CurrSocketIDContext} from '../MainScreen';
+import RNSwitchAudioOutput from 'react-native-switch-audio-output';
+
 import {
   RTCPeerConnection,
-  RTCIceCandidate,
   RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
   mediaDevices,
-  registerGlobals,
 } from 'react-native-webrtc';
 
 export default function VoiceChatRTC({roomID}) {
-  LogBox.ignoreLogs(['new NativeEventEmitter']);
-
-  // const configuration = {
-  //   iceServers: [
-  //     {
-  //       urls: [
-  //         'stun.l.google.com:19302',
-  //         'stun1.l.google.com:19302',
-  //         'stun2.l.google.com:19302',
-  //         'stun3.l.google.com:19302',
-  //         'stun4.l.google.com:19302',
-  //       ],
-  //     },
-  //   ],
-  //   iceCandidatePoolSize: 10,
-  // };
-
-  // 'stun:stun1.l.google.com:19302',
-  // 'stun:stun2.l.google.com:19302',
+  // LogBox.ignoreLogs(['new NativeEventEmitter']);
+  LogBox.ignoreAllLogs(true);
 
   const configuration = {
     iceServers: [
@@ -50,28 +30,28 @@ export default function VoiceChatRTC({roomID}) {
     iceCandidatePoolSize: 10,
   };
 
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-
   const [isConnected, setIsConnected] = useState(false);
-  const currentSocketID = useContext(CurrSocketIDContext);
 
   useEffect(() => {
+    RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_SPEAKER);
+
+    socket.on('voiceConnectedReceived', () => {
+      setIsConnected(true);
+    });
+
     socket.on('offerReceive', async offer => {
-      setupMic();
       //offer received, create new connection object, set remote description, create ans and set it to local description
       const peerConnection = new RTCPeerConnection(configuration);
+      const micLocalStream = await setupMic();
+      peerConnection.addStream(micLocalStream);
 
       peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      socket.emit('answerSend', {roomID, answer});
 
       setupListeners(peerConnection);
-    });
 
-    socket.on('voiceConnectedReceived', () => {
-      setIsConnected(true);
+      socket.emit('answerSend', {roomID, answer});
     });
   }, []);
 
@@ -80,9 +60,7 @@ export default function VoiceChatRTC({roomID}) {
     if (grabMicrophone()) {
       //set media stream
       const micStream = await mediaDevices.getUserMedia({audio: true});
-      setLocalStream(micStream);
       return micStream;
-      // console.log(micStream);
     } else {
       console.log('error grabbing microphone');
     }
@@ -98,8 +76,6 @@ export default function VoiceChatRTC({roomID}) {
     const offer = await peerConnection.createOffer();
     //set it as local description
     await peerConnection.setLocalDescription(offer);
-    //emit event w the offer and roomID
-    socket.emit('offerSend', {roomID, offer});
 
     //add listener for answer
     socket.on('answerReceive', async answer => {
@@ -109,39 +85,36 @@ export default function VoiceChatRTC({roomID}) {
       socket.emit('voiceConnected', roomID);
     });
 
-    setupListeners(peerConnection);
-
     peerConnection.onconnectionstatechange = function (e) {
       console.log(e.target.connectionState);
     };
 
-    // peerConnection.oniceconnectionstatechange = function (e) {
-    //   console.log(e.target.iceConnectionState);
-    // };
+    setupListeners(peerConnection);
 
-    // peerConnection.onicegatheringstatechange = function (e) {
-    //   console.log(e.target.iceGatheringState);
-    // };
-
-    // peerConnection.onsignalingstatechange = function (e) {
-    //   console.log(e.target.signalingState);
-    // };
+    //emit event w the offer and roomID
+    socket.emit('offerSend', {roomID, offer});
   };
 
   const setupListeners = async peerConnection => {
-    const tempStream = peerConnection.getLocalStreams();
-    setRemoteStream(tempStream[0]);
+    if (peerConnection) {
+      //add listener for transmitting ice candidates
+      peerConnection.onicecandidate = function (event) {
+        if (event.candidate) {
+          socket.emit('newIceCandidate', event.candidate);
+        }
+      };
 
-    //add listener for receiving and transmitting ice candidates
-    peerConnection.onicecandidate = function (event) {
-      if (event.candidate) {
-        socket.emit('newIceCandidate', event.candidate);
-      }
-    };
+      //add listener for receiving ice candidates
+      socket.on('newIceCandidateReceive', async candidate => {
+        await peerConnection.addIceCandidate(candidate);
+      });
 
-    socket.on('newIceCandidateReceive', async candidate => {
-      await peerConnection.addIceCandidate(candidate);
-    });
+      //add listener for disconnecting connection
+      socket.on('voiceDisconnectedReceived', () => {
+        peerConnection.close();
+        setIsConnected(false);
+      });
+    }
   };
 
   const grabMicrophone = async () => {
@@ -167,14 +140,21 @@ export default function VoiceChatRTC({roomID}) {
     }
   };
 
+  const handleCall = () => {
+    if (isConnected) {
+      socket.emit('voiceDisconnected', roomID);
+    } else {
+      makeCall();
+    }
+  };
+
   return (
-    <TouchableOpacity onPress={makeCall}>
+    <TouchableOpacity onPress={handleCall}>
       <VoiceChatIcon
         name="headphones"
         size={38}
         color={isConnected ? 'green' : 'black'}
       />
-      {remoteStream && <RTCView streamURL={remoteStream.toURL()} />}
     </TouchableOpacity>
   );
 }

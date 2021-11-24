@@ -78,15 +78,16 @@ export default function VideoPlayerScreen({currRoomID}) {
 
   return (
     <View style={styles.container}>
-      <YoutubePlayer
-        ref={youtubePlayerRef}
-        videoId={currRoomID}
-        width={'100%'}
-        height={'86%'}
-        initialPlayerParams={{controls: false}}
-        play={isPlaying}
-        onReady={initializeVideoSlider}
-      />
+      <View style={styles.videoContainer}>
+        <YoutubePlayer
+          ref={youtubePlayerRef}
+          videoId={currRoomID}
+          height={212}
+          initialPlayerParams={{controls: false}}
+          play={isPlaying}
+          onReady={initializeVideoSlider}
+        />
+      </View>
       <View style={styles.videoControlsContainer}>
         <TouchableOpacity
           onPress={() => {

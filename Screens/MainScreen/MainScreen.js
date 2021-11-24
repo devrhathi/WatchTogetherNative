@@ -7,8 +7,8 @@ import {socket} from '../../SocketContext';
 export const CurrSocketIDContext = React.createContext();
 
 export default function MainScreen({route, navigation}) {
-  // const { roomIDText } = route.params;
-  const roomIDText = 'DFWvyP6BOis';
+  const {roomIDText} = route.params;
+  // const roomIDText = 'DFWvyP6BOis';
   const [currSocketID, setCurrSocketID] = useState('');
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function MainScreen({route, navigation}) {
   return (
     <View style={styles.container}>
       <CurrSocketIDContext.Provider value={currSocketID}>
-        {/* <VideoPlayerScreen currRoomID={roomIDText} /> */}
+        <VideoPlayerScreen currRoomID={roomIDText} />
         <ChatScreen currRoomID={roomIDText} />
       </CurrSocketIDContext.Provider>
     </View>
