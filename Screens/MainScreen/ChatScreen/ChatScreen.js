@@ -32,14 +32,16 @@ export default function ChatScreen({currRoomID}) {
 
   const sendMessage = e => {
     e.preventDefault();
-    let tempMsgObj = {
-      roomID: currRoomID,
-      sender: currSocketID,
-      msg: msg,
-    };
-    socket.emit('sendMessage', tempMsgObj);
-    addNewMessage(tempMsgObj);
-    setMsg('');
+    if (msg || msg.trim() !== '') {
+      let tempMsgObj = {
+        roomID: currRoomID,
+        sender: currSocketID,
+        msg: msg.trim(),
+      };
+      socket.emit('sendMessage', tempMsgObj);
+      addNewMessage(tempMsgObj);
+      setMsg('');
+    }
   };
 
   const addNewMessage = msgObj => {

@@ -15,7 +15,8 @@
 
 ## Milestone : 3 - In Process
 
-[ ] Fix a little styling
+[x] Fix a little styling => not very good but has limitations so can't fix further
+[x] Add chat message text validation
 [ ] Test with multiple devices (more than two)
-[ ] Initially, on youtube play button, handle playing, then do not handle playing events consicutively
+[x] Initially, on youtube play button, handle playing, then do not handle playing events consicutively
 [ ] Add a transparent screen in front of youtube player, to override all touches

@@ -22,6 +22,7 @@ export default function VideoPlayerScreen({currRoomID}) {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [sliderInterval, setSliderInterval] = useState(0);
   const [widthOfSlider, setWidthOfSlider] = useState(1);
+  const [shouldEmitPlay, setShouldEmitPlay] = useState(true);
 
   useEffect(() => {
     socket.on('playVideo', () => {
@@ -86,6 +87,15 @@ export default function VideoPlayerScreen({currRoomID}) {
           initialPlayerParams={{controls: false}}
           play={isPlaying}
           onReady={initializeVideoSlider}
+          onChangeState={state => {
+            //It basically handles initial youtube play button click, which is shown on video
+            if (state === 'playing') {
+              if (shouldEmitPlay) {
+                setShouldEmitPlay(false);
+                socket.emit('playClicked', currRoomID);
+              }
+            }
+          }}
         />
       </View>
       <View style={styles.videoControlsContainer}>

@@ -3,14 +3,17 @@ import {StyleSheet} from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     marginTop: 0,
-    borderColor: 'red',
-    borderWidth: 4,
+    // borderColor: 'red',
+    // borderWidth: 4,
     display: 'flex',
   },
 
+  videoContainer: {
+    zIndex: 50,
+  },
+
   videoControlsContainer: {
-    borderColor: 'red',
-    borderWidth: 4,
+    zIndex: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
